@@ -2,6 +2,7 @@ package gr.serafeim;
 
 
 
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,10 +24,35 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class MainServlet extends HttpServlet
 {
+    private AutoDetectParser parser = null;
+    static Logger logger = Logger.getLogger(MainServlet.class.getName());
+
+    public void init(ServletConfig config) throws ServletException {
+        logger.log(Level.INFO, "Initializing MainServlet");
+
+        super.init(config);
+        TikaConfig tikaConfig = null;
+
+        try {
+            InputStream systemResourceAsStream = ClassLoader.getSystemResourceAsStream("tika-config.xml");
+            tikaConfig = new TikaConfig(systemResourceAsStream);
+            parser = new AutoDetectParser(tikaConfig);
+        } catch (TikaException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        }
+        logger.log(Level.INFO, "Done initializing MainServlet");
+
+    }
     protected void doGet(
             HttpServletRequest request,
             HttpServletResponse response)
@@ -34,7 +60,7 @@ public class MainServlet extends HttpServlet
 
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().println("<html><body><form method='POST' enctype='multipart/form-data'><input name='file' type='file'><input type='submit'></form></body><html>");
+        response.getWriter().println("<html><body><h1>Εξαγωγή κειμένου</h1><form method='POST' enctype='multipart/form-data'><input name='file' type='file'><input type='submit'></form></body><html>");
     }
 
     protected void doPost(
@@ -54,9 +80,7 @@ public class MainServlet extends HttpServlet
 
             //TikaConfig tikaConfig = TikaConfig.getDefaultConfig();
             //TikaConfig tikaConfig = new TikaConfig("file.xml");
-            TikaConfig tikaConfig = new TikaConfig("c:/progr/java/tikaserver/file.xml");
 
-            AutoDetectParser parser = new AutoDetectParser(tikaConfig);
 
 
             parser.parse(filePart.getInputStream(), handler, metadata);

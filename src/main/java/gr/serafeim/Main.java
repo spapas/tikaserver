@@ -11,7 +11,7 @@ import java.io.File;
 
 public class Main  {
     public static void main(String[] args) throws Exception {
-        gr.serafeim.TestTika.runme();
+        //gr.serafeim.TestTika.runme();
 
         Server server = new Server(7070);
 
